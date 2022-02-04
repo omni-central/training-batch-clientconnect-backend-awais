@@ -1,8 +1,11 @@
 import express from "express";
+import { UserModel } from "./shared/sequelize/models/user.model";
 const app = express();
-const PORT = 3000;
-app.get("", (req: any, res: any) => {
-  res.send("Hello world");
+const PORT = 5000;
+app.get("", async (req: any, res: any) => {
+  let users = await UserModel.findAll();
+
+  res.send(users);
 });
 
 app.listen(PORT, () => {
