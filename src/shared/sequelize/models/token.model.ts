@@ -1,28 +1,30 @@
 import { Optional, Model, DataTypes } from "sequelize";
 import { db } from "../connection";
 
-interface UserAttributes {
+interface TokenAttributes {
   id?: number;
-  name: string;
-  email: string;
-  password: string;
+  userId: number;
+  token: string;
+  type: string;
+
   readonly createdAt?: string;
   updatedAt?: string;
 }
-export interface userCreationAttributes
-  extends Optional<UserAttributes, "id" | "updatedAt" | "createdAt"> {}
-export class UserModel
-  extends Model<UserAttributes, userCreationAttributes>
-  implements UserAttributes
+export interface TokenCreationAttributes
+  extends Optional<TokenAttributes, "id" | "updatedAt" | "createdAt"> {}
+export class TokenModel
+  extends Model<TokenAttributes, TokenCreationAttributes>
+  implements TokenAttributes
 {
   id?: number;
-  name: string;
-  email: string;
-  password: string;
+  userId: number;
+  token: string;
+  type: string;
+
   readonly createdAt?: string;
   updatedAt?: string;
 }
-UserModel.init(
+TokenModel.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -31,18 +33,17 @@ UserModel.init(
       autoIncrement: true,
     },
 
-    name: {
+    token: {
+      type: new DataTypes.STRING(),
+    },
+    type: {
       type: new DataTypes.STRING(),
     },
 
-    email: {
-      type: new DataTypes.STRING(),
-      unique: true,
+    userId: {
+      type: DataTypes.NUMBER.UNSIGNED,
     },
 
-    password: {
-      type: new DataTypes.STRING(),
-    },
     createdAt: {
       type: new DataTypes.DATE(),
     },
@@ -51,7 +52,7 @@ UserModel.init(
     },
   },
   {
-    tableName: "users",
+    tableName: "tokens",
     sequelize: db,
   }
 );
