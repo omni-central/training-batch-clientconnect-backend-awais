@@ -1,12 +1,16 @@
 import { TokenModel } from "./shared/sequelize/models/token.model";
-import { json } from "sequelize";
+import { json, Op } from "sequelize";
+import express from "express";
 import {
   UserAttributes,
   UserModel,
 } from "./shared/sequelize/models/user.model";
 import jwt from "jsonwebtoken";
+interface Request extends express.Request {
+  user: UserModel;
+}
 
-export function authEndPoints(app: any) {
+export function authEndPoints(app: express.Express) {
   //get user from db  access token and refresh token
   app.post(
     "/login",
@@ -127,6 +131,20 @@ export function authEndPoints(app: any) {
       res.sendStatus(HTTP_STATUS_CODES.Forbidden);
     }
   });
+
+  // logOut endPoint
+  app.get("/logout", async (req: Request, res: any) => {
+    let tokens = await TokenModel.findAll({
+      where: {
+        userId: req.user.get("id"),
+        type: { [Op.in]: [TokenType.ACCESS, TokenType.REFRESH] },
+      },
+    });
+
+    if (tokens.length > 0) await removeAllAccessTokens(tokens);
+
+    res.sendStatus(HTTP_STATUS_CODES.Ok);
+  });
 }
 
 // Authenticat user request
@@ -211,4 +229,5 @@ export enum HTTP_STATUS_CODES {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
+  Ok = 200,
 }
