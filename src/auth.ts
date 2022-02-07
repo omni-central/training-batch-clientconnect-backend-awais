@@ -1,12 +1,12 @@
-import { TokenModel } from "./shared/sequelize/models/token.model";
-import { json, Op } from "sequelize";
 import express from "express";
+import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
+import { TokenModel } from "./shared/sequelize/models/token.model";
 import {
   UserAttributes,
   UserModel,
 } from "./shared/sequelize/models/user.model";
-import jwt from "jsonwebtoken";
-interface Request extends express.Request {
+export interface Request extends express.Request {
   user: UserModel;
 }
 
@@ -192,34 +192,6 @@ export async function authenticatRequest(req: any, res: any, next: any) {
   }
 }
 
-export const contacts = [
-  {
-    id: 1,
-    firstName: "Awais",
-    lastName: "Malik",
-    email: "awais.malik.q@gmail.com",
-  },
-
-  {
-    id: 2,
-    firstName: "ali",
-    lastName: "Malik",
-    email: "ali.malik.q@gmail.com",
-  },
-  {
-    id: 3,
-    firstName: "Mohsin",
-    lastName: "Raza",
-    email: "Mohsin.q@gmail.com",
-  },
-  {
-    id: 4,
-    firstName: "Asif",
-    lastName: "Malik",
-    email: "Asif.malik.q@gmail.com",
-  },
-];
-
 export enum TokenType {
   REFRESH = "refresh",
   ACCESS = "access",
@@ -229,5 +201,6 @@ export enum HTTP_STATUS_CODES {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
+  Bad_Request = 404,
   Ok = 200,
 }
