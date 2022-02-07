@@ -1,6 +1,9 @@
 import { TokenModel } from "./shared/sequelize/models/token.model";
 import { json } from "sequelize";
-import { UserModel } from "./shared/sequelize/models/user.model";
+import {
+  UserAttributes,
+  UserModel,
+} from "./shared/sequelize/models/user.model";
 import jwt from "jsonwebtoken";
 
 export function authEndPoints(app: any) {
@@ -13,24 +16,50 @@ export function authEndPoints(app: any) {
       });
 
       if (user) {
-        let tokenPayload = JSON.parse(JSON.stringify(user));
+        // let tokenPayload:Omit<UserAttributes,"password"> & {password?: string} = JSON.parse(JSON.stringify(user));
+        let tokenPayload: UserAttributes = JSON.parse(JSON.stringify(user));
+
         let accessToken = generateAccessToken(tokenPayload);
         let refreshToken;
 
         let userRefreshToken = await TokenModel.findAll({
-          where: { userId: user.get("id"), type: "refresh" },
+          where: { userId: user.get("id"), type: TokenType.REFRESH },
         });
+        // testin code
+        let dbAccessTokens = await TokenModel.findAll({
+          where: { userId: user.get("id"), type: TokenType.ACCESS },
+        });
+        if (dbAccessTokens) {
+          await removeAllAccessTokens(dbAccessTokens);
+        }
+
+        await TokenModel.create({
+          type: TokenType.ACCESS,
+          userId: tokenPayload.id!,
+          token: accessToken,
+        });
+
+        // if (accessToken.length < 1) {
+        //   refreshToken = generateRefreshToken(tokenPayload);
+        //   await TokenModel.create({
+        //     type: TokenType.REFRESH,
+        //     token: refreshToken,
+        //     userId: user.get("id") as number,
+        //   });
+        // }
+        // testin code
 
         if (userRefreshToken.length < 1) {
           refreshToken = generateRefreshToken(tokenPayload);
           await TokenModel.create({
-            type: "refresh",
+            type: TokenType.REFRESH,
             token: refreshToken,
             userId: user.get("id") as number,
           });
         } else {
           refreshToken = userRefreshToken[0].get("token");
         }
+        // @ts-ignore
         delete tokenPayload.password;
         res.send({ user: tokenPayload, accessToken, refreshToken });
       } else {
@@ -56,13 +85,22 @@ export function authEndPoints(app: any) {
     return jwt.sign(user, process.env.REFRESH_TOKEN_KEY as any);
   }
 
+  // Remove All AccessTokens
+  function removeAllAccessTokens(tokens: TokenModel[]): Promise<any> {
+    return Promise.all(
+      tokens.map((token) => {
+        return TokenModel.destroy({ where: { id: token.get("id") } });
+      })
+    );
+  }
+
   //Generate new token
   app.get("/token", async (req: any, res: any) => {
     let refreshToken: any = req.headers.authorization;
     refreshToken = refreshToken.split(" ");
     refreshToken = refreshToken.length > 0 ? refreshToken[1] : undefined;
     if (!refreshToken) {
-      res.sendStatus(401);
+      res.sendStatus(HTTP_STATUS_CODES.Unauthorized);
       return;
     }
 
@@ -75,44 +113,56 @@ export function authEndPoints(app: any) {
         user = await UserModel.findOne({ where: { id: user.id } });
 
         if (!user) {
-          res.sendStatus(403);
+          res.sendStatus(HTTP_STATUS_CODES.Forbidden);
           return;
         }
       } else {
-        res.sendStatus(403);
+        res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       }
 
       let accessToken = generateAccessToken(JSON.parse(JSON.stringify(user)));
 
       res.send(accessToken);
     } catch (e: any) {
-      res.sendStatus(403);
+      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
     }
   });
 }
 
 // Authenticat user request
 export async function authenticatRequest(req: any, res: any, next: any) {
-  let accessToken = req.headers.authorization;
-  accessToken = accessToken.split(" ");
-  accessToken = accessToken.length > 0 ? accessToken[1] : undefined;
-  if (!accessToken) {
-    res.sendStatus(401);
-    return;
-  }
   try {
-    let payload: any = jwt.verify(
+    let accessToken = req.headers.authorization;
+    accessToken = accessToken.split(" ");
+    accessToken = accessToken.length > 0 ? accessToken[1] : undefined;
+    if (!accessToken) {
+      res.sendStatus(HTTP_STATUS_CODES.Unauthorized);
+      return;
+    }
+    let payload: UserAttributes = jwt.verify(
       accessToken,
       process.env.ACCESS_TOKEN_KEY as any
-    );
+    ) as any;
+
     if (!payload) {
-      res.sendStatus(403);
+      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
+    }
+
+    let dbAccessToken = TokenModel.findOne({
+      where: { userId: payload.id, type: TokenType.ACCESS },
+    });
+    if (!dbAccessToken) {
+      res
+        .sendStatus(HTTP_STATUS_CODES.Forbidden)
+        .send("Session expired or user logout");
+
+      return;
     }
 
     let user = await UserModel.findOne({ where: { id: payload.id } });
 
     if (!user) {
-      res.sendStatus(403);
+      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       return;
     }
 
@@ -120,7 +170,7 @@ export async function authenticatRequest(req: any, res: any, next: any) {
 
     next();
   } catch (e: any) {
-    res.sendStatus(401);
+    res.sendStatus(HTTP_STATUS_CODES.Unauthorized);
   }
 }
 
@@ -151,3 +201,14 @@ export const contacts = [
     email: "Asif.malik.q@gmail.com",
   },
 ];
+
+export enum TokenType {
+  REFRESH = "refresh",
+  ACCESS = "access",
+}
+
+export enum HTTP_STATUS_CODES {
+  Unauthorized = 401,
+  Forbidden = 403,
+  NotFound = 404,
+}
