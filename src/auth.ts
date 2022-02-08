@@ -44,16 +44,6 @@ export function authEndPoints(app: express.Express) {
           token: accessToken,
         });
 
-        // if (accessToken.length < 1) {
-        //   refreshToken = generateRefreshToken(tokenPayload);
-        //   await TokenModel.create({
-        //     type: TokenType.REFRESH,
-        //     token: refreshToken,
-        //     userId: user.get("id") as number,
-        //   });
-        // }
-        // testin code
-
         if (userRefreshToken.length < 1) {
           refreshToken = generateRefreshToken(tokenPayload);
           await TokenModel.create({
