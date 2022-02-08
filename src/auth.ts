@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
+import { env } from "./shared/constent/env";
 import { TokenModel } from "./shared/sequelize/models/token.model";
 import {
   UserAttributes,
@@ -77,8 +78,8 @@ export function authEndPoints(app: express.Express) {
     email: string;
     password: string;
   }): string {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_KEY as any, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    return jwt.sign(user, env.ACCESS_TOKEN_KEY as any, {
+      expiresIn: env.ACCESS_TOKEN_EXPIRY,
     });
   }
   // Generate web RefreshToken
@@ -86,7 +87,7 @@ export function authEndPoints(app: express.Express) {
     email: string;
     password: string;
   }): string {
-    return jwt.sign(user, process.env.REFRESH_TOKEN_KEY as any);
+    return jwt.sign(user, env.REFRESH_TOKEN_KEY as any);
   }
 
   // Remove All AccessTokens
@@ -109,10 +110,7 @@ export function authEndPoints(app: express.Express) {
     }
 
     try {
-      let user: any = jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_KEY as any
-      );
+      let user: any = jwt.verify(refreshToken, env.REFRESH_TOKEN_KEY as any);
       if (user) {
         user = await UserModel.findOne({ where: { id: user.id } });
 
@@ -159,7 +157,7 @@ export async function authenticatRequest(req: any, res: any, next: any) {
     }
     let payload: UserAttributes = jwt.verify(
       accessToken,
-      process.env.ACCESS_TOKEN_KEY as any
+      env.ACCESS_TOKEN_KEY as any
     ) as any;
 
     if (!payload) {

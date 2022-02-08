@@ -29,6 +29,7 @@ app.get("/allContacts", authenticatRequest, async (req, res) => {
 
   res.send(contacts);
 });
+
 // INSERT CONTACT INTO DB
 interface createContactRequest extends Omit<Request, "body"> {
   body: {
