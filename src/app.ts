@@ -1,7 +1,12 @@
 import express from "express";
 import { UserModel } from "./shared/sequelize/models/user.model";
 const app = express();
-import { authenticatRequest, authEndPoints, Request } from "./auth";
+import {
+  authenticatRequest,
+  authEndPoints,
+  Request,
+  HTTP_STATUS_CODES,
+} from "./auth";
 app.use(express.json({ limit: "10mb" }));
 import dotenv from "dotenv";
 import {
@@ -33,20 +38,33 @@ interface createContactRequest extends Omit<Request, "body"> {
 
 app.post("/new", authenticatRequest, (req: createContactRequest, res: any) => {
   let values: any = [];
-  Object.keys(req.body.contact).forEach((key) => {
+  console.log(req.body.contact);
+
+  if (!req.body.contact) {
+    res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+    return;
+  }
+
+  Object.keys(req.body.contact).forEach((key: string) => {
     //@ts-ignore
     let value: any = req.body.contact[key];
+    console.log(key);
 
-    if (["name", "email", "phone"].includes(key)) values.push[value];
+    if (["name", "email", "phone"].includes(key)) values.push(value);
   });
-  res.send(values);
+
+  if (values.length < 1) {
+    res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+    return;
+  }
+  res.send(
+    ContactModel.create({
+      ...req.body.contact,
+      userId: req.user.get("id") as number,
+    })
+  );
 });
 
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
-
-
-
-
-34:56 Selection 8

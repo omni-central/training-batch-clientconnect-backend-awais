@@ -78,7 +78,7 @@ export function authEndPoints(app: express.Express) {
     password: string;
   }): string {
     return jwt.sign(user, process.env.ACCESS_TOKEN_KEY as any, {
-      expiresIn: "15m",
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     });
   }
   // Generate web RefreshToken
@@ -201,6 +201,6 @@ export enum HTTP_STATUS_CODES {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
-  Bad_Request = 404,
+  Bad_Request = 400,
   Ok = 200,
 }
