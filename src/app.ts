@@ -87,6 +87,31 @@ app.delete(
   }
 );
 
+// Edit contact on  db
+app.put(
+  "/editContact/:id",
+  authenticatRequest,
+  async (req: Request, res: any) => {
+    let contact = await ContactModel.findOne({
+      where: { id: req.params.id },
+    });
+    if (!contact) {
+      res.sendStatus(HTTP_STATUS_CODES.NotFound);
+      return;
+    }
+
+    if (contact.userId !== req.user.id) {
+      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
+      return;
+    }
+    console.log(req.body);
+
+    contact.update(req.body);
+
+    res.sendStatus(HTTP_STATUS_CODES.Ok);
+  }
+);
+
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
