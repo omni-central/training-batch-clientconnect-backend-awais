@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import { UserModel } from "./shared/sequelize/models/user.model";
 const app = express();
 import {
@@ -13,6 +13,7 @@ import {
   ContactAttributes,
   ContactModel,
 } from "./shared/sequelize/models/contact.model";
+import { Op } from "sequelize";
 dotenv.config();
 const PORT = 5000;
 authEndPoints(app);
@@ -29,6 +30,18 @@ app.get("/allContacts", authenticatRequest, async (req, res) => {
 
   res.send(contacts);
 });
+// Get all contacts by user id
+app.get(
+  "/allContactsByUser",
+  authenticatRequest,
+  async (req: any, res: any) => {
+    let contacts = await ContactModel.findAll({
+      where: { userId: req.user.get("id") },
+    });
+
+    res.send(contacts);
+  }
+);
 
 // INSERT CONTACT INTO DB
 interface createContactRequest extends Omit<Request, "body"> {
@@ -37,34 +50,36 @@ interface createContactRequest extends Omit<Request, "body"> {
   };
 }
 
-app.post("/new", authenticatRequest, (req: createContactRequest, res: any) => {
-  let values: any = [];
-  console.log(req.body.contact);
+app.post(
+  "/newContact",
+  authenticatRequest,
+  (req: createContactRequest, res: any) => {
+    let values: any = [];
 
-  if (!req.body.contact) {
-    res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
-    return;
+    if (!req.body.contact) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+
+    Object.keys(req.body.contact).forEach((key: string) => {
+      //@ts-ignore
+      let value: any = req.body.contact[key];
+
+      if (["name", "email", "phone"].includes(key)) values.push(value);
+    });
+
+    if (values.length < 1) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+    res.send(
+      ContactModel.create({
+        ...req.body.contact,
+        userId: req.user.get("id") as number,
+      })
+    );
   }
-
-  Object.keys(req.body.contact).forEach((key: string) => {
-    //@ts-ignore
-    let value: any = req.body.contact[key];
-    console.log(key);
-
-    if (["name", "email", "phone"].includes(key)) values.push(value);
-  });
-
-  if (values.length < 1) {
-    res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
-    return;
-  }
-  res.send(
-    ContactModel.create({
-      ...req.body.contact,
-      userId: req.user.get("id") as number,
-    })
-  );
-});
+);
 // delete contact from db
 app.delete(
   "/deleteContact/:id",
@@ -87,26 +102,60 @@ app.delete(
   }
 );
 
+// contact search using search key word
+app.get(
+  "/contacts/:searchKeyWord",
+  authenticatRequest,
+  async (req: Request, res: any) => {
+    let searchKeyWord = req.params.searchKeyWord;
+
+    let contacts = await ContactModel.findAll({
+      where: {
+        userId: req.user.get("id"),
+        name: { [Op.like]: `%${searchKeyWord}%` },
+      },
+    });
+    res.send(contacts);
+  }
+);
+
 // Edit contact on  db
 app.put(
   "/editContact/:id",
   authenticatRequest,
   async (req: Request, res: any) => {
+    if (!req.params.id) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+
     let contact = await ContactModel.findOne({
       where: { id: req.params.id },
     });
+    console.log(JSON.stringify(contact));
+
     if (!contact) {
       res.sendStatus(HTTP_STATUS_CODES.NotFound);
       return;
     }
-
-    if (contact.userId !== req.user.id) {
+    if (contact.get("userId") !== req.user.get("id")) {
       res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       return;
     }
-    console.log(req.body);
+    let values: string[] = [];
 
-    contact.update(req.body);
+    Object.keys(req.body.contact).forEach((key: string) => {
+      //@ts-ignore
+      let value: string = req.body.contact[key];
+
+      if (["name", "email", "phone"].includes(key)) values.push(value);
+    });
+    if (values.length < 1) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+
+    await contact.update(req.body.contact);
 
     res.sendStatus(HTTP_STATUS_CODES.Ok);
   }

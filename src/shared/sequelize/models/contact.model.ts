@@ -46,7 +46,7 @@ ContactModel.init(
     },
 
     userId: {
-      type: DataTypes.NUMBER.UNSIGNED,
+      type: DataTypes.INTEGER,
     },
 
     createdAt: {
