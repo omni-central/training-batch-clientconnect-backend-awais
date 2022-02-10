@@ -53,7 +53,7 @@ interface createContactRequest extends Omit<Request, "body"> {
 app.post(
   "/newContact",
   authenticatRequest,
-  (req: createContactRequest, res: any) => {
+  async (req: createContactRequest, res: any) => {
     let values: any = [];
 
     if (!req.body.contact) {
@@ -72,12 +72,13 @@ app.post(
       res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
       return;
     }
-    res.send(
-      ContactModel.create({
-        ...req.body.contact,
-        userId: req.user.get("id") as number,
-      })
-    );
+
+    await ContactModel.create({
+      ...req.body.contact,
+      userId: req.user.get("id") as number,
+    });
+
+    res.sendStatus(HTTP_STATUS_CODES.Created);
   }
 );
 // delete contact from db

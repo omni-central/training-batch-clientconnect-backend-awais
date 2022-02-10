@@ -191,4 +191,5 @@ export enum HTTP_STATUS_CODES {
   NotFound = 404,
   Bad_Request = 400,
   Ok = 200,
+  Created = 201,
 }
