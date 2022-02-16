@@ -1,6 +1,9 @@
 import express, { response } from "express";
+import cors from "cors";
+
 import { UserModel } from "./shared/sequelize/models/user.model";
 const app = express();
+app.use(cors());
 import {
   authenticatRequest,
   authEndPoints,
