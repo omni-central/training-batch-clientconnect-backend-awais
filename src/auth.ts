@@ -121,7 +121,7 @@ export function authEndPoints(app: express.Express) {
   });
 
   // logOut endPoint
-  app.get("/logout", async (req: Request, res: any) => {
+  app.get("/logout", authenticatRequest, async (req: Request, res: any) => {
     let tokens = await TokenModel.findAll({
       where: {
         userId: req.user.get("id"),
@@ -131,7 +131,7 @@ export function authEndPoints(app: express.Express) {
 
     if (tokens.length > 0) await removeAllAccessTokens(tokens);
 
-    res.sendStatus(HTTP_STATUS_CODES.Ok);
+    res.send({});
   });
 }
 
