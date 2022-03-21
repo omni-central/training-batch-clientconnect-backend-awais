@@ -102,7 +102,7 @@ app.delete(
       return;
     }
     await contact.destroy();
-    res.sendStatus(HTTP_STATUS_CODES.Ok);
+    res.status(HTTP_STATUS_CODES.Ok).send({});
   }
 );
 

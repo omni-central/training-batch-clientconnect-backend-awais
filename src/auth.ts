@@ -131,7 +131,7 @@ export function authEndPoints(app: express.Express) {
 
     if (tokens.length > 0) await removeAllAccessTokens(tokens);
 
-    res.send({});
+    res.status(HTTP_STATUS_CODES.Ok).send({});
   });
 }
 
