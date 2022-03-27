@@ -17,6 +17,10 @@ import {
   ContactModel,
 } from "./shared/sequelize/models/contact.model";
 import { Op } from "sequelize";
+import {
+  MessageAttributes,
+  MessageModel,
+} from "./shared/sequelize/models/message.model";
 dotenv.config();
 const PORT = 5000;
 authEndPoints(app);
@@ -162,6 +166,77 @@ app.put(
     await contact.update(req.body.contact);
 
     res.sendStatus(HTTP_STATUS_CODES.Ok);
+  }
+);
+
+// get all messags from db
+// Get Alll Message after token authentication
+app.get("/allMessages", authenticatRequest, async (req, res) => {
+  let messages = await MessageModel.findAll();
+
+  res.send(messages);
+});
+
+// Delete  Message after token authentication
+app.delete(
+  "/deleteMessage/:id",
+  authenticatRequest,
+  async (req: Request, res: any) => {
+    let message = await MessageModel.findOne({
+      where: { id: req.params.id },
+    });
+    if (!message) {
+      res.sendStatus(HTTP_STATUS_CODES.NotFound);
+      return;
+    }
+    if (message.userId != req.user.id) {
+      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
+      return;
+    }
+
+    await message.destroy();
+    res.status(HTTP_STATUS_CODES.Ok).send({});
+  }
+);
+
+// create new message
+// INSERT CONTACT INTO DB
+interface createMessageRequest extends Omit<Request, "body"> {
+  body: {
+    message: MessageAttributes;
+  };
+}
+
+app.post(
+  "/newMessage",
+  authenticatRequest,
+  async (req: createMessageRequest, res: any) => {
+    let values: any = [];
+
+    if (!req.body.message) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+
+    Object.keys(req.body.message).forEach((key: string) => {
+      //@ts-ignore
+      let value: any = req.body.message[key];
+
+      if (["message", "phone", "name"].includes(key)) values.push(value);
+    });
+    console.log(values);
+
+    if (values.length < 1) {
+      res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
+      return;
+    }
+
+    await MessageModel.create({
+      ...req.body.message,
+      userId: req.user.get("id") as number,
+    });
+
+    res.sendStatus(HTTP_STATUS_CODES.Created);
   }
 );
 

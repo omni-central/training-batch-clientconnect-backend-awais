@@ -4,8 +4,8 @@ import { db } from "../connection";
 export interface MessageAttributes {
   id?: number;
   userId: number;
-  name: string;
   message: string;
+  name: string;
   phone: string;
 
   readonly createdAt?: string;
@@ -19,8 +19,8 @@ export class MessageModel
 {
   id?: number;
   userId: number;
-  name: string;
   message: string;
+  name: string;
   phone: string;
 
   readonly createdAt?: string;
@@ -35,10 +35,10 @@ MessageModel.init(
       autoIncrement: true,
     },
 
-    name: {
+    message: {
       type: new DataTypes.STRING(),
     },
-    message: {
+    name: {
       type: new DataTypes.STRING(),
     },
     phone: {
