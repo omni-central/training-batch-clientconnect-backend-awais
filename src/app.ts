@@ -108,7 +108,7 @@ app.delete(
 
 // contact search using search key word
 app.get(
-  "/contacts/:searchKeyWord",
+  "/contacts/:searchKeyWord?",
   authenticatRequest,
   async (req: Request, res: any) => {
     let searchKeyWord = req.params.searchKeyWord;
