@@ -20,6 +20,9 @@ module.exports = {
       phone: {
         type: Sequelize.STRING,
       },
+      groups: {
+        type: Sequelize.STRING,
+      },
       userId: {
         type: Sequelize.INTEGER,
         references: {

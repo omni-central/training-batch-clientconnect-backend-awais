@@ -38,17 +38,13 @@ app.get("/allContacts", authenticatRequest, async (req, res) => {
   res.send(contacts);
 });
 // Get all contacts by user id
-app.get(
-  "/allContactsByUser",
-  authenticatRequest,
-  async (req: any, res: any) => {
-    let contacts = await ContactModel.findAll({
-      where: { userId: req.user.get("id") },
-    });
+app.get("/contacts", authenticatRequest, async (req: any, res: any) => {
+  let contacts = await ContactModel.findAll({
+    where: { userId: req.user.get("id") },
+  });
 
-    res.send(contacts);
-  }
-);
+  res.send(contacts);
+});
 
 // INSERT CONTACT INTO DB
 interface createContactRequest extends Omit<Request, "body"> {

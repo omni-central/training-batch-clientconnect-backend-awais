@@ -7,6 +7,7 @@ export interface ContactAttributes {
   name: string;
   email: string;
   phone: string;
+  groups: string;
 
   readonly createdAt?: string;
   updatedAt?: string;
@@ -22,6 +23,7 @@ export class ContactModel
   name: string;
   email: string;
   phone: string;
+  groups: string;
 
   readonly createdAt?: string;
   updatedAt?: string;
@@ -44,7 +46,9 @@ ContactModel.init(
     phone: {
       type: new DataTypes.STRING(),
     },
-
+    groups: {
+      type: new DataTypes.STRING(),
+    },
     userId: {
       type: DataTypes.INTEGER,
     },
