@@ -64,11 +64,21 @@ app.post(
       return;
     }
 
+    var matchedContactEmail = await ContactModel.findAll({
+      where: { email: req.body.contact.email },
+    });
+
+    if (matchedContactEmail.length > 0) {
+      res.send({ message: "Your Email is already exist in contacts" });
+      return;
+    }
+
     Object.keys(req.body.contact).forEach((key: string) => {
       //@ts-ignore
       let value: any = req.body.contact[key];
 
-      if (["name", "email", "phone"].includes(key)) values.push(value);
+      if (["name", "email", "phone", "groups"].includes(key))
+        values.push(value);
     });
 
     if (values.length < 1) {
@@ -81,7 +91,8 @@ app.post(
       userId: req.user.get("id") as number,
     });
 
-    res.sendStatus(HTTP_STATUS_CODES.Created);
+    res.send({});
+    return;
   }
 );
 // delete contact from db
@@ -136,12 +147,23 @@ app.put(
     let contact = await ContactModel.findOne({
       where: { id: req.params.id },
     });
-    console.log(JSON.stringify(contact));
 
     if (!contact) {
       res.sendStatus(HTTP_STATUS_CODES.NotFound);
       return;
     }
+
+    // check if email is Aready exist
+
+    var matchedContactEmail = await ContactModel.findAll({
+      where: { email: req.body.contact.email },
+    });
+
+    if (matchedContactEmail.length > 0) {
+      res.send({ message: "Your Email is already exist in contacts" });
+      return;
+    }
+
     if (contact.get("userId") !== req.user.get("id")) {
       res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       return;
@@ -152,16 +174,19 @@ app.put(
       //@ts-ignore
       let value: string = req.body.contact[key];
 
-      if (["name", "email", "phone"].includes(key)) values.push(value);
+      if (["name", "email", "phone", "groups"].includes(key))
+        values.push(value);
     });
     if (values.length < 1) {
       res.sendStatus(HTTP_STATUS_CODES.Bad_Request);
       return;
     }
 
+    // awais malik this is test
+
     await contact.update(req.body.contact);
 
-    res.sendStatus(HTTP_STATUS_CODES.Ok);
+    res.send({});
   }
 );
 
