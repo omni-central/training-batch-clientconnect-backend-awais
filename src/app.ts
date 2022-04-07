@@ -113,7 +113,7 @@ app.delete(
       return;
     }
     await contact.destroy();
-    res.status(HTTP_STATUS_CODES.Ok).send({});
+    res.send({});
   }
 );
 
@@ -216,7 +216,7 @@ app.delete(
     }
 
     await message.destroy();
-    res.status(HTTP_STATUS_CODES.Ok).send({});
+    res.send({});
   }
 );
 

@@ -114,9 +114,9 @@ export function authEndPoints(app: express.Express) {
 
       let accessToken = generateAccessToken(JSON.parse(JSON.stringify(user)));
 
-      res.send(accessToken);
+      res.send({ accessToken });
     } catch (e: any) {
-      res.sendStatus(HTTP_STATUS_CODES.Forbidden);
+      res.send({});
     }
   });
 
@@ -131,7 +131,7 @@ export function authEndPoints(app: express.Express) {
 
     if (tokens.length > 0) await removeAllAccessTokens(tokens);
 
-    res.status(HTTP_STATUS_CODES.Ok).send({});
+    res.send({});
   });
 }
 
