@@ -155,15 +155,6 @@ app.put(
 
     // check if email is Aready exist
 
-    var matchedContactEmail = await ContactModel.findAll({
-      where: { email: req.body.contact.email },
-    });
-
-    if (matchedContactEmail.length > 0) {
-      res.send({ message: "Your Email is already exist in contacts" });
-      return;
-    }
-
     if (contact.get("userId") !== req.user.get("id")) {
       res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       return;
@@ -258,6 +249,22 @@ app.post(
     });
 
     res.sendStatus(HTTP_STATUS_CODES.Created);
+  }
+);
+// contact search using search key word
+app.get(
+  "/messages/:searchKeyWord?",
+  authenticatRequest,
+  async (req: Request, res: any) => {
+    let searchKeyWord = req.params.searchKeyWord;
+
+    let messages = await MessageModel.findAll({
+      where: {
+        userId: req.user.get("id"),
+        name: { [Op.like]: `%${searchKeyWord}%` },
+      },
+    });
+    res.send(messages);
   }
 );
 
