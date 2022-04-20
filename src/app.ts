@@ -10,6 +10,7 @@ import { deleteContactEndpoint } from "./routes/contact/delete-contact.route";
 import { editContactEndpoint } from "./routes/contact/edit-contact.route";
 import { contactEndpoints } from "./routes/contact/get-contacts.route";
 import { messageEndpoints } from "./routes/message/messages-routes";
+import { numberEndpoints } from "./routes/nomber/number";
 
 const app = express();
 app.use(cors());
@@ -22,6 +23,7 @@ createContactEndpoint(app);
 deleteContactEndpoint(app);
 editContactEndpoint(app);
 messageEndpoints(app);
+numberEndpoints(app);
 
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);

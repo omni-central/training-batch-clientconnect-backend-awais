@@ -111,12 +111,18 @@ export function authEndPoints(app: express.Express) {
       } else {
         res.sendStatus(HTTP_STATUS_CODES.Forbidden);
       }
-
       let accessToken = generateAccessToken(JSON.parse(JSON.stringify(user)));
-
+      await TokenModel.destroy({
+        where: { userId: user.get("id"), type: TokenType.ACCESS },
+      });
+      await TokenModel.create({
+        token: accessToken,
+        userId: user.get("id"),
+        type: TokenType.ACCESS,
+      });
       res.send({ accessToken });
     } catch (e: any) {
-      res.send({});
+      res.error(500).send({});
     }
   });
 
